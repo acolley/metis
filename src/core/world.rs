@@ -2,11 +2,12 @@
 use collections::hashmap::HashMap;
 
 use super::entity::Entity;
-use super::component::Component;
+use super::component::{Component, ComponentType, ComponentTypeManager};
 use super::system::System;
 
 pub struct World {
 	current_id: u64,
+    comp_type_manager: ComponentTypeManager,
 	entities: HashMap<Entity, Vec<~Component>>,
 	recycled: Vec<Entity>,
 	systems: Vec<~System>,
@@ -17,6 +18,7 @@ impl World {
 	pub fn new() -> World {
 		World {
 			current_id: 0,
+            comp_type_manager: ComponentTypeManager::new(),
 			entities: HashMap::new(),
 			recycled: Vec::new(),
 			systems: Vec::new(),
@@ -67,8 +69,12 @@ impl World {
 			// storing the set when new entities are added
 			// at the end of the frame
 			for &entity in self.entities.keys() {
+                // TODO: implement this using an Aspect type
 				// get the entity's aspect
+                //let aspect = self.entities.get(&entity).iter().fold(ComponentType(0u64), |acc,x| acc | self.comp_type_manager.get_type_for_instance(*x));
 				let aspect = self.entities.get(&entity).iter().fold(0u64, |acc,x| acc | x.get_component_type());
+
+                // if system.aspect().matches(&entity) etc...
 
 				if aspect | system.get_aspect() != 0 {
 					system.update(entity);

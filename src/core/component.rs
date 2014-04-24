@@ -78,4 +78,12 @@ impl ComponentTypeManager {
         }
         *id
     }
+
+    pub fn get_type_for_instance<T: Component + 'static>(&mut self, component: ~T) -> ComponentType {
+        let id = self.types.find_or_insert(component.get_type_id(), self.current_id);
+        if self.current_id == *id {
+            self.current_id = self.current_id << 1;
+        }
+        *id
+    }
 }
