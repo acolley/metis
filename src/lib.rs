@@ -4,6 +4,8 @@
 #![crate_type = "dylib"]
 #![comment = "A game engine"]
 
+#[feature(globs)]
+
 extern crate cgmath;
 //extern crate glfw;
 
