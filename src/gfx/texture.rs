@@ -8,6 +8,11 @@ use std::libc::{c_void};
 // use stb_image::image;
 // use stb_image::image::ImageU8;
 
+pub enum PixelFormat {
+	RGB,
+	RGBA
+}
+
 // abstracts the concept of a Texture on the GPU
 pub trait Texture {
 	fn get_width(&self) -> i32;
@@ -26,16 +31,15 @@ pub struct Texture2D {
 	depth: i32, // how many components there are per pixel
 	format: u32, // TODO: wrap this sort of thing with a Rust enum?
 
-	priv texID: u32 // the opengl texture id assigned to this Texture2D
+	texID: u32 // the opengl texture id assigned to this Texture2D
 }
 
 impl Texture2D {
 	// create a new blank Texture2D with no data supplied
-	pub fn new(width: i32, height: i32, depth: i32) -> Texture2D {
+	pub fn new(width: i32, height: i32, depth: PixelFormat) -> Texture2D {
 		let format = match depth {
-			3 => gl::RGB as u32,
-			4 => gl::RGBA as u32,
-			_ => fail!("Unsupported depth: [{}]", depth)
+			RGB => gl::RGB as u32,
+			RGBA => gl::RGBA as u32
 		};
 
 		// TODO: error checking to make this safe
@@ -79,7 +83,7 @@ impl Texture2D {
 	}
 
 	// create a new Texture2D with supplied image data
-	pub fn new_data(width: i32, height: i32, depth: i32, data: &[u8]) -> Texture2D {
+	pub fn from_data(width: i32, height: i32, depth: PixelFormat, data: &[u8]) -> Texture2D {
 		let tex = Texture2D::new(width, height, depth);
 
 		tex.bind(gl::TEXTURE_2D);
@@ -97,6 +101,18 @@ impl Texture2D {
 		}
 
 		tex
+	}
+
+	pub fn get_width(&self) -> u32 {
+		self.width
+	}
+
+	pub fn get_height(&self) -> u32 {
+		self.height
+	}
+
+	pub fn get_depth(&self) -> u32 {
+		self.depth
 	}
 
 	pub fn set_data(&self) {
@@ -117,12 +133,12 @@ impl Texture for Texture2D {
 		self.height
 	}
 
-	#[inline(always)]
+	#[inline]
 	fn bind(&self, target: gl::types::GLenum) {
 		gl::BindTexture(target, self.texID);
 	}
 
-	#[inline(always)]
+	#[inline]
 	fn unbind(&self) {
 
 	}

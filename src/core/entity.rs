@@ -1,68 +1,62 @@
+use std::any::{Any, AnyRefExt, AnyMutRefExt};
 
-use std::hash::Hash;
+#[deriving(Show)]
+pub struct Entity {
+    components: Vec<Box<Any>>
+}
 
-// use std::any::{Any};
-// use std::cast::{transmute};
+impl Entity {
+    pub fn new() -> Entity {
+        Entity {
+            components: Vec::new()
+        }
+    }
 
-// use super::component::{Component};
+    pub fn add<T: 'static>(&mut self, component: Box<T>) {
+        self.components.push(component as Box<Any>);
+    }
 
-// #[deriving(Clone)]
-// pub struct Entity {
-// 	id: uint,
-// 	aspect_id: uint,
-// 	components: Vec<~Component>
-// }
+    pub fn get<'a, T: 'static>(&'a self) -> Option<&'a T> {
+        for component in self.components.iter() {
+            match component.as_ref::<T>() {
+                Some(c) => return Some(c),
+                None => {}
+            }
+        }
+        None
+    }
 
-#[deriving(Clone, Eq, Hash, TotalEq)]
-pub struct Entity(pub u64);
+    pub fn get_mut<'a, T: 'static>(&'a mut self) -> Option<&'a mut T> {
+        for component in self.components.mut_iter() {
+            match component.as_mut::<T>() {
+                Some(c) => return Some(c),
+                None => {}
+            }
+        }
+        None
+    }
+}
 
-// impl Entity {
-// 	// TODO: take a World as argument
-// 	pub fn new(id: uint) -> Entity {
-// 		Entity { 
-// 			id: id,
-// 			aspect_id: 0,
-// 			components: Vec::new()
-// 		}
-// 	}
+#[test]
+fn test_get() {
+    struct Component {
+        pub field: int
+    }
 
-// 	pub fn get_aspect_id(&self) -> uint {
-// 		self.aspect_id
-// 	}
+    let mut e = Entity::new();
+    e.add(box Component { field: 0; });
+    let c: &Component = e.get();
+    assert!(!c.is_none());
+}
 
-// 	pub fn add_component<T: Component>(&mut self, component: T) {
-// 		self.components.push(component.clone() as ~Component);
+#[test]
+fn test_get_mut() {
+    struct Component {
+        pub field: int
+    }
 
-// 		self.aspect_id |= component.get_component_type();
-// 	}
-
-// 	pub fn get_component<'a, T: Component>(&'a self, component_type: uint) -> Option<&'a ~T> {
-// 		for component in self.components.iter() {
-// 			if component.get_component_type() | component_type != 0 {
-// 				unsafe { 
-// 					return Some(transmute(component)); 
-// 				}
-// 			}
-// 		}
-
-// 		None
-// 	}
-
-// 	pub fn get_component_mut<'a, T: Component>(&'a mut self, component_type: uint) -> Option<&'a mut ~T> {
-// 		for component in self.components.mut_iter() {
-// 			if component.get_component_type() | component_type != 0 {
-// 				unsafe {
-// 					return Some(transmute(component));
-// 				}
-// 			}
-// 		}
-
-// 		None
-// 	}
-// }
-
-// impl Eq for Entity {
-// 	fn eq(&self, other: &Entity) -> bool {
-// 		self.id == other.id
-// 	}
-// }
+    let mut e = Entity::new();
+    e.add(box Component { field: 0; });
+    let mut c: &Component = e.get_mut();
+    assert!(!c.is_none());
+}

@@ -111,7 +111,7 @@ impl ShaderProgram {
     }
 
     pub fn begin(&self) {
-        
+        gl::UseProgram(self.id);
     }
 }
 
